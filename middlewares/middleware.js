@@ -7,8 +7,8 @@ export const checkLogin = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
-    return res.status(4041).send({
+    console.log(error, "Loi Token");
+    return res.status(401).send({
       error,
     });
   }

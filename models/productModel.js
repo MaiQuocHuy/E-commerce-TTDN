@@ -10,13 +10,21 @@ const productSchema = new mongoose.Schema({
     required: true,
     lowercase: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
   price: {
     type: Number,
     required: true,
   },
-  category: {
+  branch: {
     type: mongoose.ObjectId,
-    ref: "Category",
+    ref: "Branch",
+    required: true,
+  },
+  gender: {
+    type: String,
     required: true,
   },
   quantity: {
@@ -27,12 +35,9 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  //   photo: {
-  //     data: Buffer,
-  //     contentType: String,
-  //   },
-  shipping: {
-    type: Boolean,
+  photo: {
+    data: Buffer,
+    contentType: String,
   },
 });
 

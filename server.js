@@ -3,9 +3,8 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoute.js";
-import categoryRoutes from "./routes/categoryRoute.js";
+import branchRoutes from "./routes/branchRoute.js";
 import productRoutes from "./routes/productRoute.js";
-
 import cors from "cors";
 
 dotenv.config();
@@ -14,7 +13,6 @@ dotenv.config();
 connectDB();
 
 const app = express();
-
 //middleware
 app.use(cors());
 app.use(express.json());
@@ -22,7 +20,7 @@ app.use(morgan("dev"));
 
 //router
 app.use("/api/e-commerce/auth", authRoutes);
-app.use("/api/e-commerce/category", categoryRoutes);
+app.use("/api/e-commerce/branch", branchRoutes);
 app.use("/api/e-commerce/product", productRoutes);
 
 //restful api

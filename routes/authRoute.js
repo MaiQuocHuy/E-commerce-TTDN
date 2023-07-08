@@ -3,6 +3,7 @@ import {
   forgotPasswordController,
   loginController,
   registerController,
+  updateProfile,
 } from "../controllers/authControllers.js";
 import { CheckIsAdmin, checkLogin } from "../middlewares/middleware.js";
 
@@ -16,10 +17,13 @@ router.post("/login", loginController);
 router.post("/forgot-password", forgotPasswordController);
 
 //protect route user
+// router.get("/user-auth", checkLogin, (req, res) => {
+//   return res.status(200).send({
+//     ok: true,
+//   });
+// });
 router.get("/user-auth", checkLogin, (req, res) => {
-  return res.status(200).send({
-    ok: true,
-  });
+  res.status(200).send({ ok: true });
 });
 
 router.get("/admin-auth", checkLogin, CheckIsAdmin, (req, res) => {
@@ -27,5 +31,7 @@ router.get("/admin-auth", checkLogin, CheckIsAdmin, (req, res) => {
     ok: true,
   });
 });
+
+router.put("/user-auth/update-profile", checkLogin, updateProfile);
 
 export default router;

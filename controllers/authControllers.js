@@ -166,3 +166,36 @@ function sendOTP(email) {
 
   return randomNumber;
 }
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, address, phone, email } = req.body;
+    const { _id } = req.user;
+
+    const user = await userModel.findById(_id);
+    const updateUser = await userModel.findByIdAndUpdate(
+      _id,
+      {
+        name: name || user.name,
+        address: address || user.address,
+        phone: phone || user.phone,
+        email: email || user.email,
+        password: user.password,
+        role: user.role,
+      },
+      { new: true }
+    );
+    return res.status(200).send({
+      success: true,
+      message: "Updated profile successfully",
+      updateUser,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).send({
+      success: false,
+      message: "Updated profile is not successfully",
+      error,
+    });
+  }
+};
