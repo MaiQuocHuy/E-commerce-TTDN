@@ -1,10 +1,39 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import Layout from "../../components/LayoutAdmin/Layout";
-// import "bootstrap";
+import { useOrder } from "../../context/order";
 import "../../styles/adminlte.min.css";
 import "../../styles/vendor.css";
+import BASE_URL from "../../config";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
+  const [totalMoney, setTotalMoney] = useState(0);
+  const [totalUser, setTotalUser] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/product/get-all-orders`
+      );
+      console.log(data, "Da vao");
+      if (data?.success) {
+        console.log(data?.totalOrder);
+        setTotalMoney(data?.totalOrder);
+      }
+    };
+    const fetchDataUser = async () => {
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/auth/get-all-user`
+      );
+      if (data?.success) {
+        console.log(data?.users);
+        setTotalUser(data?.users?.length);
+      }
+    };
+    fetchData();
+    fetchDataUser();
+  }, []);
   return (
     <>
       <Layout title={"Admin - Dashboard"}>
@@ -24,46 +53,38 @@ const AdminDashboard = () => {
             {/* Default box */}
             <div className="container-fluid">
               <div className="row">
-                <div className="col-lg-4 col-6">
+                <div className="col-lg-6 col-6 text-center">
                   <div className="small-box card">
                     <div className="inner">
-                      <h3>150</h3>
+                      <h3>{totalMoney}</h3>
                       <p>Total Orders</p>
                     </div>
                     <div className="icon">
                       <i className="ion ion-bag" />
                     </div>
-                    <a href="#" className="small-box-footer text-dark">
+                    <Link
+                      to="/admin/order-page"
+                      className="small-box-footer text-dark"
+                    >
                       More info <i className="fas fa-arrow-circle-right" />
-                    </a>
+                    </Link>
                   </div>
                 </div>
-                <div className="col-lg-4 col-6">
+                <div className="col-lg-6 col-6 text-center">
                   <div className="small-box card">
                     <div className="inner">
-                      <h3>50</h3>
-                      <p>Total Customers</p>
+                      <h3>{totalUser}</h3>
+                      <p>Total Users</p>
                     </div>
                     <div className="icon">
                       <i className="ion ion-stats-bars" />
                     </div>
-                    <a href="#" className="small-box-footer text-dark">
+                    <Link
+                      to="/admin/user-page"
+                      className="small-box-footer text-dark"
+                    >
                       More info <i className="fas fa-arrow-circle-right" />
-                    </a>
-                  </div>
-                </div>
-                <div className="col-lg-4 col-6">
-                  <div className="small-box card">
-                    <div className="inner">
-                      <h3>$1000</h3>
-                      <p>Total Sale</p>
-                    </div>
-                    <div className="icon">
-                      <i className="ion ion-person-add" />
-                    </div>
-                    <a href="javascript:void(0);" className="small-box-footer">
-                      &nbsp;
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

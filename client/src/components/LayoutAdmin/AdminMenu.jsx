@@ -56,9 +56,9 @@ const AdminMenu = () => {
                 </NavLink>
               </li>
               <li className="nav-item">
-                <NavLink to="/admin/discount-page" className="nav-link">
+                <NavLink to="/admin/payment-page" className="nav-link">
                   <i className="nav-icon  fa fa-percent" aria-hidden="true" />
-                  <p>Discount</p>
+                  <p>Payment</p>
                 </NavLink>
               </li>
               <li className="nav-item">

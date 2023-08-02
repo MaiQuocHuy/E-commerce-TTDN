@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import BASE_URL from "../../../config";
 import "../../../styles/adminlte.min.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../../context/auth";
+import { toast } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -34,6 +36,8 @@ const Login = () => {
           });
           localStorage.setItem("auth", JSON.stringify(data));
           navigate(location.state || "/admin/dashboard-page");
+        } else {
+          toast.error(data.error);
         }
       }
     } catch (error) {
@@ -43,6 +47,7 @@ const Login = () => {
 
   return (
     <>
+      <Toaster />
       <div className="login-page">
         <div className="login-box">
           {/* /.login-logo */}

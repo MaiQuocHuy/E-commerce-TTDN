@@ -1,28 +1,38 @@
 /* eslint-disable react/no-unescaped-entities */
 import Layout from "../components/Layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Radio } from "antd";
 import { useEffect, useState } from "react";
 import BASE_URL from "../config";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-// import ReactPaginate from "react-paginate";
 import { Pagination } from "antd";
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
+import { useAuth } from "../context/auth";
+import { useCart } from "../context/cart";
+import { useWish } from "../context/wish";
 
 const ShopPage = () => {
   const [gender, setGender] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [price, setPrice] = useState({
     min: "",
     max: "",
   });
+  const [productInCart, setProductInCart] = useCart();
+  const [wishes, setWishes] = useWish();
+
+  const navigate = useNavigate();
   const [ok, setOk] = useState(false);
   const [branches, setBranches] = useState([]);
   const [products, setProducts] = useState([]);
   const [pageCount, setPageCount] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 6;
+  const [counter, setCounter] = useState(1);
+  const [auth, setAuth] = useAuth();
   const antIcon = (
     <LoadingOutlined
       style={{
@@ -32,11 +42,63 @@ const ShopPage = () => {
     />
   );
 
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    const idProduct = e.target.getAttribute("data-value");
+    try {
+      if (auth?.user != null) {
+        const { data } = await axios.post(
+          `${BASE_URL}/api/e-commerce/product/add-to-cart`,
+          {
+            idProduct: idProduct,
+            id: auth?.user?._id,
+            quantity: counter,
+          }
+        );
+        if (data?.success) {
+          toast.success("Added successfully");
+          console.log(data?.cart);
+          setProductInCart(data?.cart?.products);
+        } else toast.error(data?.error);
+      } else navigate("/signin-page");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const findWishProduct = (id) => {
+    try {
+      if (wishes?.length != 0) {
+        for (const item of wishes) {
+          console.log(item.product._id);
+          if (item.product._id == id) return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleWishProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const idProduct = e.target.getAttribute("data-value");
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/auth/wishproduct/${idProduct}`
+      );
+      if (data?.success) {
+        toast.success(data?.message);
+        console.log(data?.handleWish?.products, "Wish");
+        setWishes(data?.handleWish?.products);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleClickGender = async (e) => {
     e.preventDefault();
     try {
-      toast.success(e.target.value);
-      //do something
+      setGender(e.target.value);
     } catch (error) {
       console.log(error);
       toast.error(error);
@@ -45,7 +107,7 @@ const ShopPage = () => {
 
   const handlePageClick = (page, pageSize) => {
     try {
-      console.log(page, pageSize);
+      console.log(page, pageSize, "Page");
       setCurrentPage(page);
     } catch (error) {
       toast.error("Error");
@@ -55,11 +117,13 @@ const ShopPage = () => {
   const handlePriceClick = async (e) => {
     e.preventDefault();
     try {
-      toast.success(`${price.min} - ${price.max}`);
-      if (price.min >= price.max) {
-        toast.error(`Error due to ${price.min} >= ${price.max}`);
+      if (parseInt(minPrice) >= parseInt(maxPrice)) {
+        toast.error(`Error due to ${minPrice} >= ${maxPrice}`);
       } else {
-        //do some thing
+        setPrice({
+          min: minPrice,
+          max: maxPrice,
+        });
       }
     } catch (error) {
       console.log(error);
@@ -79,44 +143,8 @@ const ShopPage = () => {
     }
   };
 
-  const getAllProducts = async () => {
-    try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/e-commerce/product/get-all-product`
-      );
-      if (data?.success) {
-        setOk(true);
-        setProducts(data.products);
-      } else {
-        setProducts([]);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const getPaginatedProduct = async () => {
     try {
-      // const fetchData =  {
-      //   axios
-      //     .get(
-      //       `${BASE_URL}/api/e-commerce/product/paginatedproduct?page=${currentPage}&limit=${limit}`
-      //     )
-      //     .then((reponse) => {
-      //       const reponseData = reponse.data;
-      //       console.log(reponseData);
-      //       if (reponseData?.results?.result?.length !== 0) {
-      //         setPageCount(reponseData?.results?.pageCount);
-      //         setProducts(reponseData?.results?.result);
-      //       } else {
-      //         setOk(true);
-      //       }
-      //       resolve();
-      //     })
-      //     .catch((err) => {
-      //       reject(err);
-      //     });
-      // });
       const { data } = await axios.get(
         `${BASE_URL}/api/e-commerce/product/paginatedproduct?page=${currentPage}&limit=${limit}`
       );
@@ -131,15 +159,71 @@ const ShopPage = () => {
     }
   };
 
-  useEffect(() => {
-    getAllBranch();
-    // getAllProducts();
-  }, []);
+  const filterProduct = async () => {
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/e-commerce/product/product-filters`,
+        {
+          gender,
+          price,
+        }
+      );
+      console.log(data);
+      if (data?.success && data?.products?.length !== 0) {
+        setProducts(data?.products);
+        setPageCount(Math.ceil(data?.products?.length / 6));
+      } else if (data?.success && data?.products?.length === 0) {
+        setProducts([]);
+      } else if (!data?.success) {
+        toast.error(data?.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleResetFilter = async (e) => {
+    e.preventDefault();
+    try {
+      setPrice({
+        min: "",
+        max: "",
+      });
+      setGender("");
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
 
   useEffect(() => {
-    // const fetchProduct = async () => {
-    //   await getPaginatedProduct();
-    // };
+    getAllBranch();
+  }, []);
+  useEffect(() => {
+    if (wishes?.length != 0) console.log(wishes, "Wish");
+  }, [wishes, wishes?.length]);
+
+  useEffect(() => {
+    if (gender || (price.min && price.max)) {
+      console.log("Filter");
+      toast.promise(filterProduct(), {
+        loading: "Loading Filter Product...",
+        success: "Loading filter product successfully!",
+        error: "Failed to filter product",
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "yellow",
+          color: "black",
+        },
+      });
+    } else if (!gender && !price.min && !price.max) {
+      console.log("Loading");
+      getPaginatedProduct();
+    }
+  }, [gender, price.min, price.max]);
+
+  useEffect(() => {
     const fetchProduct = new Promise((resolve, reject) => {
       getPaginatedProduct()
         .then(() => {
@@ -149,8 +233,6 @@ const ShopPage = () => {
           reject(error);
         });
     });
-
-    // fetchProduct();
     toast.promise(fetchProduct, {
       loading: "Loading...",
       success: "Product Loading successfully!",
@@ -227,14 +309,9 @@ const ShopPage = () => {
                                   className="input-text input-text--primary-style"
                                   type="number"
                                   id="price-min"
-                                  value={price.min}
-                                  onChange={(e) =>
-                                    setPrice({
-                                      ...price,
-                                      min: e.target.value,
-                                    })
-                                  }
                                   placeholder="Min"
+                                  value={minPrice}
+                                  onChange={(e) => setMinPrice(e.target.value)}
                                 />
                               </div>
                               <div>
@@ -243,14 +320,9 @@ const ShopPage = () => {
                                   className="input-text input-text--primary-style"
                                   type="number"
                                   id="price-max"
-                                  value={price.max}
-                                  onChange={(e) =>
-                                    setPrice({
-                                      ...price,
-                                      max: e.target.value,
-                                    })
-                                  }
                                   placeholder="Max"
+                                  value={maxPrice}
+                                  onChange={(e) => setMaxPrice(e.target.value)}
                                 />
                               </div>
                               <div>
@@ -294,6 +366,29 @@ const ShopPage = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="u-s-m-b-30">
+                      <div className="shop-w shop-w--style">
+                        <div
+                          className="shop-w__intro-wrap reset-filter"
+                          style={{ display: "flex", justifyContent: "center" }}
+                          onClick={(e) => {
+                            toast.promise(handleResetFilter(e), {
+                              loading: "Loading...",
+                              success: "Reset Filter successfully!",
+                              error: "Failed to reset filter product",
+                              duration: 3000,
+                              position: "top-center",
+                              style: {
+                                background: "yellow",
+                                color: "black",
+                              },
+                            });
+                          }}
+                        >
+                          <h1 className="shop-w__h">Reset Filter</h1>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -306,25 +401,11 @@ const ShopPage = () => {
                           Grid
                         </span>
                       </div>
-                      <form>
-                        <div className="tool-style__form-wrap">
-                          <div className="u-s-m-b-8">
-                            <select className="select-box select-box--transparent-b-2">
-                              <option selected>Sort By: Newest Items</option>
-                              <option>Sort By: Latest Items</option>
-                              <option>Sort By: Best Selling</option>
-                              <option>Sort By: Best Rating</option>
-                              <option>Sort By: Lowest Price</option>
-                              <option>Sort By: Highest Price</option>
-                            </select>
-                          </div>
-                        </div>
-                      </form>
                     </div>
                   </div>
                   <div className="shop-p__collection">
                     {products.length === 0 ? (
-                      ok === false && (
+                      ok === false ? (
                         <Spin
                           indicator={antIcon}
                           style={{
@@ -333,6 +414,16 @@ const ShopPage = () => {
                             alignItems: "center",
                           }}
                         />
+                      ) : (
+                        <h3
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          Empty
+                        </h3>
                       )
                     ) : (
                       <div className="row is-grid-active">
@@ -341,7 +432,10 @@ const ShopPage = () => {
                             className="col-lg-4 col-md-6 col-sm-6"
                             key={item._id}
                           >
-                            <div className="product-m">
+                            <div
+                              className="product-m"
+                              style={{ position: "relative" }}
+                            >
                               <div className="product-m__thumb">
                                 <Link
                                   className="aspect aspect--bg-grey aspect--square u-d-block"
@@ -354,14 +448,21 @@ const ShopPage = () => {
                                   />
                                 </Link>
 
-                                <div className="product-m__add-cart">
-                                  <a
+                                <div
+                                  className={`product-m__add-cart ${
+                                    item.inventory <= 0 && "disabled"
+                                  }`}
+                                >
+                                  <Link
                                     className="btn--e-brand"
                                     data-modal="modal"
                                     data-modal-id="#add-to-cart"
+                                    data-value={item._id}
+                                    to="#"
+                                    onClick={handleAddToCart}
                                   >
                                     Add to Cart
-                                  </a>
+                                  </Link>
                                 </div>
                               </div>
                               <div className="product-m__content">
@@ -389,7 +490,9 @@ const ShopPage = () => {
                                     (23)
                                   </span>
                                 </div>
-                                <div className="product-m__price">$125.00</div>
+                                <div className="product-m__price">
+                                  ${item.price}
+                                </div>
                                 <div className="product-m__hover">
                                   <div className="product-m__preview-description">
                                     <span
@@ -401,13 +504,34 @@ const ShopPage = () => {
                                   <div className="product-m__wishlist">
                                     <Link
                                       className="far fa-heart"
-                                      to="/user/wishlist-page"
+                                      to="#"
                                       data-tooltip="tooltip"
+                                      data-value={item._id}
                                       data-placement="top"
                                       title="Add to Wishlist"
+                                      data-boolean={findWishProduct(item._id)}
+                                      style={{
+                                        color:
+                                          findWishProduct(item._id) == true
+                                            ? "#ff4500"
+                                            : "initial",
+                                      }}
+                                      onClick={handleWishProduct}
                                     />
                                   </div>
                                 </div>
+                              </div>
+
+                              <div
+                                className="banner"
+                                style={{
+                                  backgroundColor:
+                                    item.inventory > 0 ? "#4caf50" : "#fa4400",
+                                }}
+                              >
+                                <span className="status">
+                                  {item.inventory > 0 ? "Stocking" : "Sold out"}
+                                </span>
                               </div>
                             </div>
                           </div>

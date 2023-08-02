@@ -24,6 +24,7 @@ const HomePage = () => {
     />
   );
 
+
   const getAllBranch = async () => {
     try {
       const { data } = await axios.get(
@@ -56,15 +57,21 @@ const HomePage = () => {
 
   const getProductByBranch = async (e, bid) => {
     e.preventDefault();
+    console.log(bid);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/e-commerce/product/get-product-by-branch/${bid}`
-      );
-      if (data?.products.length !== 0) {
-        setProducts(data.products);
+      if (bid) {
+        const { data } = await axios.get(
+          `${BASE_URL}/api/e-commerce/product/get-product-by-branch/${bid}`
+        );
+        if (data?.products.length !== 0) {
+          setProducts(data.products);
+        } else {
+          setOk(true);
+          setProducts([]);
+        }
       } else {
-        setOk(true);
-        setProducts([]);
+        await getAllProducts();
+        setSelectedBranch(null);
       }
     } catch (error) {
       console.log(error);
@@ -75,6 +82,7 @@ const HomePage = () => {
     setSelectedBranch(id);
     getProductByBranch(e, id);
   };
+
 
   const getAllProducts = async () => {
     try {
@@ -240,6 +248,11 @@ const HomePage = () => {
                       }`}
                       type="button"
                       data-filter="*"
+                      data-value={""}
+                      onClick={(e) => {
+                        let id = e.target.getAttribute("data-value");
+                        handleButtonClick(e, id);
+                      }}
                     >
                       ALL
                     </button>
@@ -305,42 +318,6 @@ const HomePage = () => {
                                   src={`${BASE_URL}/api/e-commerce/product/product-photo/${item._id}`}
                                 />
                               </Link>
-                              <div className="product-o__action-wrap">
-                                <ul className="product-o__action-list">
-                                  <li>
-                                    <a
-                                      data-modal="modal"
-                                      data-modal-id="#quick-look"
-                                      data-tooltip="tooltip"
-                                      data-placement="top"
-                                      title="Quick View"
-                                    >
-                                      <i className="fas fa-search-plus" />
-                                    </a>
-                                  </li>
-                                  <li>
-                                    <a
-                                      data-modal="modal"
-                                      data-modal-id="#add-to-cart"
-                                      data-tooltip="tooltip"
-                                      data-placement="top"
-                                      title="Add to Cart"
-                                    >
-                                      <i className="fas fa-plus-circle" />
-                                    </a>
-                                  </li>
-                                  <li>
-                                    <a
-                                      href="signin.html"
-                                      data-tooltip="tooltip"
-                                      data-placement="top"
-                                      title="Add to Wishlist"
-                                    >
-                                      <i className="fas fa-heart" />
-                                    </a>
-                                  </li>
-                                </ul>
-                              </div>
                             </div>
                             <span className="product-o__category">
                               <Link to="/shop-page">{item.branch.name}</Link>

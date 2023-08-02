@@ -59,10 +59,21 @@ const CreateProduct = () => {
           )
           .then((response) => {
             const responseData = response.data;
+            // console.log(responseData);
             if (responseData.success) {
               navigate("/admin/product-page");
             }
-            resolve(responseData);
+            return responseData;
+          })
+          .then((responseData) => {
+            console.log("Addtional data", responseData);
+            axios
+              .post(`${BASE_URL}/api/e-commerce/product/create-comment`, {
+                idProduct: responseData.product._id,
+              })
+              .then(() => {
+                resolve();
+              });
           })
           .catch((error) => {
             reject(error);

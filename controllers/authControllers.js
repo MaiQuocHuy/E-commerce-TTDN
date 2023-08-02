@@ -1,12 +1,12 @@
-import { token } from "morgan";
 import userModel from "../models/userModel.js";
 import { comparePassword, hashPassword } from "./../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
 import nodemailer from "nodemailer";
+import wishModel from "../models/wishModel.js";
 
 export const registerController = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password } = req.body;
     //validation
     if (!name) {
       return res.send({
@@ -23,11 +23,6 @@ export const registerController = async (req, res) => {
         error: "password is required",
       });
     }
-    if (!phone) {
-      return res.send({
-        error: "phone is required",
-      });
-    }
 
     //check User
     const existingUser = await userModel.findOne({ email });
@@ -41,12 +36,11 @@ export const registerController = async (req, res) => {
     //hashPasswword User
     const hashPass = await hashPassword(password);
 
-    console.log(hashPassword);
     //saveUser
     const user = await new userModel({
       name,
       email,
-      phone,
+      phone: "",
       address: "",
       password: hashPass,
     }).save();
@@ -68,12 +62,14 @@ export const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email) {
-      return res.send({
+      return res.status(400).send({
+        success: false,
         error: "Email is required",
       });
     }
     if (!password) {
-      return res.send({
+      return res.status(400).send({
+        success: false,
         error: "Password is required",
       });
     }
@@ -81,12 +77,14 @@ export const loginController = async (req, res) => {
     const user = await userModel.findOne({ email });
     if (!user) {
       return res.send({
+        success: false,
         error: "Email is not exist",
       });
     }
     const comparePass = await comparePassword(password, user.password);
     if (!comparePass) {
       return res.send({
+        success: false,
         error: "Password is not correct",
       });
     }
@@ -148,12 +146,13 @@ function sendOTP(email) {
     },
   });
 
-  const randomNumber = Math.floor(Math.random() * 999999) + 100000;
+  let randomNumber = Math.floor(Math.random() * 999999) + 100000;
+
   const mailOptions = {
     from: "maiquochuy16122003@gmail.com",
     to: email,
-    subject: "OTP",
-    text: `OTP is ${randomNumber}`,
+    subject: "OTP Exist in 30s",
+    text: `OTP is ${randomNumber} Exist in 30s`,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -170,11 +169,11 @@ function sendOTP(email) {
 export const updateProfile = async (req, res) => {
   try {
     const { name, address, phone, email } = req.body;
-    const { _id } = req.user;
+    const id = req.user._id;
 
-    const user = await userModel.findById(_id);
+    const user = await userModel.findById(id);
     const updateUser = await userModel.findByIdAndUpdate(
-      _id,
+      id,
       {
         name: name || user.name,
         address: address || user.address,
@@ -195,6 +194,182 @@ export const updateProfile = async (req, res) => {
     return res.status(404).send({
       success: false,
       message: "Updated profile is not successfully",
+      error,
+    });
+  }
+};
+
+export const updatePasswordController = async (req, res) => {
+  try {
+    const { password, email } = req.body;
+    if (password) {
+      const hashPass = await hashPassword(password);
+      const user = await userModel.findOneAndUpdate(
+        { email },
+        {
+          password: hashPass,
+        },
+        {
+          new: true,
+        }
+      );
+      return res.status(200).send({
+        success: true,
+        user,
+      });
+    }
+  } catch (error) {
+    return res.status(404).send({
+      success: false,
+      error,
+    });
+  }
+};
+
+export const getInfoUserController = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const user = await userModel.findById(id);
+    return res.status(200).send({
+      success: true,
+      message: "Loading Information",
+      user,
+    });
+  } catch (error) {
+    return res.status(404).send({
+      success: false,
+      error,
+    });
+  }
+};
+
+export const handleWishProductController = async (req, res) => {
+  try {
+    const { idProduct } = req.params;
+    const id = req.user._id;
+    const wish = await wishModel.findOne({
+      "products.product": idProduct,
+      user: id,
+    });
+    console.log(wish);
+    let handleWish = null;
+    if (wish) {
+      handleWish = await wishModel
+        .findOneAndUpdate(
+          {
+            "products.product": idProduct,
+            user: id,
+          },
+          {
+            $pull: { products: { product: idProduct } },
+          },
+          { new: true }
+        )
+        .populate({ path: "products.product", select: "-photo" })
+        .populate({
+          path: "products.product",
+          populate: {
+            path: "branch",
+            module: "Branch",
+          },
+        });
+    } else {
+      console.log("Davao");
+      handleWish = await wishModel
+        .findOneAndUpdate(
+          {
+            user: id,
+          },
+          {
+            $push: { products: { product: idProduct } },
+          },
+          { new: true }
+        )
+        .populate({ path: "products.product", select: "-photo" })
+        .populate({
+          path: "products.product",
+          populate: {
+            path: "branch",
+            module: "Branch",
+          },
+        });
+    }
+    return res.status(200).send({
+      success: true,
+      message: "Handle Tym",
+      handleWish,
+    });
+  } catch (error) {
+    return res.status(404).send({
+      success: false,
+      error,
+    });
+  }
+};
+
+export const createWishController = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const wish = await new wishModel({
+      products: [],
+      user: id,
+    }).save();
+    return res.status(200).send({
+      success: true,
+      message: "Success",
+      wish,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: `${error}`,
+      error,
+    });
+  }
+};
+
+export const getAllWishController = async (req, res) => {
+  try {
+    const id = req.user._id;
+    const wishes = await wishModel
+      .findOne({
+        user: id,
+      })
+      .populate({ path: "products.product", select: "-photo" })
+      .populate({
+        path: "products.product",
+        populate: {
+          path: "branch",
+          module: "Branch",
+        },
+      });
+    return res.status(200).send({
+      success: true,
+      message: "Success",
+      wishes,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: `${error}`,
+      error,
+    });
+  }
+};
+
+export const getAllUserController = async (req, res) => {
+  try {
+    const users = await userModel.find({
+      role: 0,
+    });
+    return res.status(200).send({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    return res.status(400).send({
+      success: false,
+      message: `${error}`,
       error,
     });
   }

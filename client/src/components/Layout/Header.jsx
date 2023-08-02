@@ -1,8 +1,49 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logo from "../../assets/react.svg";
+import { useAuth } from "../../context/auth";
+import BASE_URL from "../../config";
+import { useCart } from "../../context/cart";
 
 const Header = () => {
+  const [auth, setAuth] = useAuth();
+  const [subTotal, setSubTotal] = useState(0);
+  const navigate = useNavigate();
+  const [productInCart, setProductInCart] = useCart();
+  const handleSignout = async (e) => {
+    e.preventDefault();
+    try {
+      setAuth({
+        ...auth,
+        user: null,
+        token: "",
+      });
+      localStorage.removeItem("auth");
+      navigate("/signin-page");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getTotal = async () => {
+    try {
+      const total = productInCart?.reduce(
+        (intial, current) => intial + current.quantity * current.product.price,
+        0
+      );
+      setSubTotal(total);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (auth?.user) {
+      console.log(productInCart, "Product");
+      getTotal();
+    }
+  }, [auth?.user, productInCart]);
+
   return (
     <header className="header--style-1">
       <nav className="primary-nav primary-nav-wrapper--border">
@@ -52,24 +93,31 @@ const Header = () => {
                           <span>Account</span>
                         </NavLink>
                       </li>
-                      <li>
-                        <NavLink to="/signup-page">
-                          <i className="fas fa-user-plus u-s-m-r-6" />
-                          <span>Signup</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink to="/signin-page">
-                          <i className="fas fa-lock u-s-m-r-6" />
-                          <span>Signin</span>
-                        </NavLink>
-                      </li>
-                      <li>
-                        <NavLink to="/signout-page">
-                          <i className="fas fa-lock-open u-s-m-r-6" />
-                          <span>Signout</span>
-                        </NavLink>
-                      </li>
+                      {!auth?.user ? (
+                        <>
+                          <li>
+                            <NavLink to="/signup-page">
+                              <i className="fas fa-user-plus u-s-m-r-6" />
+                              <span>Signup</span>
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink to="/signin-page">
+                              <i className="fas fa-lock u-s-m-r-6" />
+                              <span>Signin</span>
+                            </NavLink>
+                          </li>
+                        </>
+                      ) : (
+                        <>
+                          <li>
+                            <NavLink onClick={handleSignout} to="#">
+                              <i className="fas fa-lock-open u-s-m-r-6" />
+                              <span>Signout</span>
+                            </NavLink>
+                          </li>
+                        </>
+                      )}
                     </ul>
                   </li>
                 </ul>
@@ -245,156 +293,71 @@ const Header = () => {
                   <li className="has-dropdown">
                     <a className="mini-cart-shop-link">
                       <i className="fas fa-shopping-bag" />
-                      <span className="total-item-round">2</span>
+                      <span className="total-item-round">
+                        {productInCart?.length || 0}
+                      </span>
                     </a>
                     {/*====== Dropdown ======*/}
                     <span className="js-menu-toggle" />
                     <div className="mini-cart">
                       {/*====== Mini Product Container ======*/}
                       <div className="mini-product-container gl-scroll u-s-m-b-15">
-                        {/*====== Card for mini cart ======*/}
-                        <div className="card-mini-product">
-                          <div className="mini-product">
-                            <div className="mini-product__image-wrapper">
-                              <a
-                                className="mini-product__link"
-                                href="product-detail.html"
-                              >
-                                <img
-                                  className="u-img-fluid"
-                                  //   src="images/product/electronic/product3.jpg"
-                                />
-                              </a>
+                        {productInCart?.length != 0 ? (
+                          productInCart?.map((item, index) => (
+                            <div className="card-mini-product" key={index}>
+                              <div className="mini-product">
+                                <div className="mini-product__image-wrapper">
+                                  <Link
+                                    className="mini-product__link"
+                                    to={`/product-detail-page/${item.product.slug}`}
+                                  >
+                                    <img
+                                      className="u-img-fluid"
+                                      src={`${BASE_URL}/api/e-commerce/product/product-photo/${item?.product?._id}`}
+                                    />
+                                  </Link>
+                                </div>
+                                <div className="mini-product__info-wrapper">
+                                  <span className="mini-product__category">
+                                    <Link to="#">
+                                      {item.product.branch.name}
+                                    </Link>
+                                  </span>
+                                  <span className="mini-product__name">
+                                    <Link
+                                      to={`/product-detail-page/${item.product.slug}`}
+                                    >
+                                      {item.product.name}
+                                    </Link>
+                                  </span>
+                                  <span className="mini-product__quantity">
+                                    {item.quantity} x
+                                  </span>
+                                  <span className="mini-product__price">
+                                    ${item.product.price}
+                                  </span>
+                                </div>
+                              </div>
+                              <a className="mini-product__delete-link far fa-trash-alt" />
                             </div>
-                            <div className="mini-product__info-wrapper">
-                              <span className="mini-product__category">
-                                <a href="shop-side-version-2.html">
-                                  Electronics
-                                </a>
-                              </span>
-                              <span className="mini-product__name">
-                                <a href="product-detail.html">
-                                  Yellow Wireless Headphone
-                                </a>
-                              </span>
-                              <span className="mini-product__quantity">
-                                1 x
-                              </span>
-                              <span className="mini-product__price">$8</span>
-                            </div>
-                          </div>
-                          <a className="mini-product__delete-link far fa-trash-alt" />
-                        </div>
-                        {/*====== End - Card for mini cart ======*/}
-                        {/*====== Card for mini cart ======*/}
-                        <div className="card-mini-product">
-                          <div className="mini-product">
-                            <div className="mini-product__image-wrapper">
-                              <a
-                                className="mini-product__link"
-                                href="product-detail.html"
-                              >
-                                <img
-                                  className="u-img-fluid"
-                                  //   src="images/product/electronic/product18.jpg"
-                                />
-                              </a>
-                            </div>
-                            <div className="mini-product__info-wrapper">
-                              <span className="mini-product__category">
-                                <a href="shop-side-version-2.html">
-                                  Electronics
-                                </a>
-                              </span>
-                              <span className="mini-product__name">
-                                <a href="product-detail.html">
-                                  Nikon DSLR Camera 4k
-                                </a>
-                              </span>
-                              <span className="mini-product__quantity">
-                                1 x
-                              </span>
-                              <span className="mini-product__price">$8</span>
-                            </div>
-                          </div>
-                          <a className="mini-product__delete-link far fa-trash-alt" />
-                        </div>
-                        {/*====== End - Card for mini cart ======*/}
-                        {/*====== Card for mini cart ======*/}
-                        <div className="card-mini-product">
-                          <div className="mini-product">
-                            <div className="mini-product__image-wrapper">
-                              <a
-                                className="mini-product__link"
-                                href="product-detail.html"
-                              >
-                                <img
-                                  className="u-img-fluid"
-                                  //   src="images/product/women/product8.jpg"
-                                />
-                              </a>
-                            </div>
-                            <div className="mini-product__info-wrapper">
-                              <span className="mini-product__category">
-                                <a href="shop-side-version-2.html">
-                                  Women Clothing
-                                </a>
-                              </span>
-                              <span className="mini-product__name">
-                                <a href="product-detail.html">
-                                  New Dress D Nice Elegant
-                                </a>
-                              </span>
-                              <span className="mini-product__quantity">
-                                1 x
-                              </span>
-                              <span className="mini-product__price">$8</span>
-                            </div>
-                          </div>
-                          <a className="mini-product__delete-link far fa-trash-alt" />
-                        </div>
-                        {/*====== End - Card for mini cart ======*/}
-                        {/*====== Card for mini cart ======*/}
-                        <div className="card-mini-product">
-                          <div className="mini-product">
-                            <div className="mini-product__image-wrapper">
-                              <a
-                                className="mini-product__link"
-                                href="product-detail.html"
-                              >
-                                <img
-                                  className="u-img-fluid"
-                                  //   src="images/product/men/product8.jpg"
-                                />
-                              </a>
-                            </div>
-                            <div className="mini-product__info-wrapper">
-                              <span className="mini-product__category">
-                                <a href="shop-side-version-2.html">
-                                  Men Clothing
-                                </a>
-                              </span>
-                              <span className="mini-product__name">
-                                <a href="product-detail.html">
-                                  New Fashion D Nice Elegant
-                                </a>
-                              </span>
-                              <span className="mini-product__quantity">
-                                1 x
-                              </span>
-                              <span className="mini-product__price">$8</span>
-                            </div>
-                          </div>
-                          <a className="mini-product__delete-link far fa-trash-alt" />
-                        </div>
-                        {/*====== End - Card for mini cart ======*/}
+                          ))
+                        ) : (
+                          <h4
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                            }}
+                          >
+                            EMPTY
+                          </h4>
+                        )}
                       </div>
                       {/*====== End - Mini Product Container ======*/}
                       {/*====== Mini Product Statistics ======*/}
                       <div className="mini-product-stat">
                         <div className="mini-total">
                           <span className="subtotal-text">SUBTOTAL</span>
-                          <span className="subtotal-value">$16</span>
+                          <span className="subtotal-value">${subTotal}</span>
                         </div>
                         <div className="mini-action">
                           <Link

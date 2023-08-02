@@ -1,8 +1,54 @@
-import React from "react";
 import Layout from "../../components/Layout/Layout";
 import UserMenu from "../../components/Layout/UserMenu";
+import { useAuth } from "../../context/auth";
+import { useEffect, useState } from "react";
+import { useOrder } from "../../context/order";
+import axios from "axios";
+import BASE_URL from "../../config";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
+  const [auth, setAuth] = useAuth();
+  const [orders, setOrders] = useOrder();
+  const [user, setUser] = useState({});
+
+  const getInfo = async () => {
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/e-commerce/auth/info-user`,
+        {
+          id: auth?.user?._id,
+        }
+      );
+      if (data?.success) {
+        setUser(data?.user);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const formatDate = (timestamp) => {
+    try {
+      // const timestamp = "2023-07-15T10:55:39.110Z";
+      const date = new Date(timestamp);
+      const formattedDate = `${date.getDate()}/${
+        date.getMonth() + 1
+      }/${date.getFullYear()}`;
+
+      return formattedDate;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (auth?.token) {
+      getInfo();
+      console.log(orders);
+    }
+  }, [auth?.token]);
+
   return (
     <>
       <Layout title={"Dash Board"}>
@@ -18,54 +64,15 @@ const Dashboard = () => {
                   information.
                 </span>
                 <div className="row">
-                  <div className="col-lg-4 u-s-m-b-30">
-                    <div className="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
+                  <div className="col-lg-12 u-s-m-b-30">
+                    <div className="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100 text-center">
                       <div className="dash__pad-3">
                         <h2 className="dash__h2 u-s-m-b-8">PERSONAL PROFILE</h2>
                         <div className="dash__link dash__link--secondary u-s-m-b-8">
-                          <a href="dash-edit-profile.html">Edit</a>
+                          <Link to="/user/dashboardprofile-page">Edit</Link>
                         </div>
-                        <span className="dash__text">John Doe</span>
-                        <span className="dash__text">johndoe@domain.com</span>
-                        <div className="dash__link dash__link--secondary u-s-m-t-8">
-                          <a
-                            data-modal="modal"
-                            data-modal-id="#dash-newsletter"
-                          >
-                            Subscribe Newsletter
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-4 u-s-m-b-30">
-                    <div className="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
-                      <div className="dash__pad-3">
-                        <h2 className="dash__h2 u-s-m-b-8">ADDRESS BOOK</h2>
-                        <span className="dash__text-2 u-s-m-b-8">
-                          Default Shipping Address
-                        </span>
-                        <div className="dash__link dash__link--secondary u-s-m-b-8">
-                          <a href="dash-address-book.html">Edit</a>
-                        </div>
-                        <span className="dash__text">
-                          4247 Ashford Drive Virginia - VA-20006 - USA
-                        </span>
-                        <span className="dash__text">(+0) 900901904</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-4 u-s-m-b-30">
-                    <div className="dash__box dash__box--bg-grey dash__box--shadow-2 u-h-100">
-                      <div className="dash__pad-3">
-                        <h2 className="dash__h2 u-s-m-b-8">BILLING ADDRESS</h2>
-                        <span className="dash__text-2 u-s-m-b-8">
-                          Default Billing Address
-                        </span>
-                        <span className="dash__text">
-                          4247 Ashford Drive Virginia - VA-20006 - USA
-                        </span>
-                        <span className="dash__text">(+0) 900901904</span>
+                        <span className="dash__text">{user?.name}</span>
+                        <span className="dash__text">{user?.email}</span>
                       </div>
                     </div>
                   </div>
@@ -85,90 +92,28 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>3054231326</td>
-                      <td>26/13/2016</td>
-                      <td>
-                        <div className="dash__table-img-wrap">
-                          <img
-                            className="u-img-fluid"
-                            src="images/product/electronic/product3.jpg"
-                            alt
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="dash__table-total">
-                          <span>$126.00</span>
-                          <div className="dash__link dash__link--brand">
-                            <a href="dash-manage-order.html">MANAGE</a>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>3054231326</td>
-                      <td>26/13/2016</td>
-                      <td>
-                        <div className="dash__table-img-wrap">
-                          <img
-                            className="u-img-fluid"
-                            src="images/product/electronic/product14.jpg"
-                            alt
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="dash__table-total">
-                          <span>$126.00</span>
-                          <div className="dash__link dash__link--brand">
-                            <a href="dash-manage-order.html">MANAGE</a>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>3054231326</td>
-                      <td>26/13/2016</td>
-                      <td>
-                        <div className="dash__table-img-wrap">
-                          <img
-                            className="u-img-fluid"
-                            src="images/product/men/product8.jpg"
-                            alt
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="dash__table-total">
-                          <span>$126.00</span>
-                          <div className="dash__link dash__link--brand">
-                            <a href="dash-manage-order.html">MANAGE</a>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>3054231326</td>
-                      <td>26/13/2016</td>
-                      <td>
-                        <div className="dash__table-img-wrap">
-                          <img
-                            className="u-img-fluid"
-                            src="images/product/women/product10.jpg"
-                            alt
-                          />
-                        </div>
-                      </td>
-                      <td>
-                        <div className="dash__table-total">
-                          <span>$126.00</span>
-                          <div className="dash__link dash__link--brand">
-                            <a href="dash-manage-order.html">MANAGE</a>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
+                    {orders?.length != 0 &&
+                      orders?.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item?._id}</td>
+                          <td>{formatDate(item?.createdAt)}</td>
+                          <td>
+                            <span>{item?.payment?.paymentName}</span>
+                          </td>
+                          <td>
+                            <div className="dash__table-total">
+                              <span>${item.totalmoney}</span>
+                              <div className="dash__link dash__link--brand">
+                                <Link
+                                  to={`/user/managemyorder-page/${item._id}`}
+                                >
+                                  MANAGE
+                                </Link>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>

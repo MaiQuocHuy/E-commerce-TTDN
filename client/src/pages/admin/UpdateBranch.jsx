@@ -49,7 +49,7 @@ const UpdateBranch = () => {
 
   return (
     <>
-      <Layout title={"Create - Branch"}>
+      <Layout title={"Update - Branch"}>
         <div className="content-wrapper">
           {/* Content Header (Page header) */}
           <section className="content-header">
@@ -93,7 +93,7 @@ const UpdateBranch = () => {
               </div>
               <div className="pb-5 pt-3">
                 <button className="btn btn-primary" onClick={handleUpdate}>
-                  Create
+                  Update
                 </button>
                 <Link
                   to="/admin/branch-page"

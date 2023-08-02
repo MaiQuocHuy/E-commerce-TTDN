@@ -1,8 +1,53 @@
-import React from "react";
+import { useState } from "react";
 import Layout from "../../components/Layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import BASE_URL from "../../config";
 
 const SignupPage = () => {
+  const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    try {
+      const name = `${firstName}${lastName}`;
+      const res = await axios.post(`${BASE_URL}/api/e-commerce/auth/register`, {
+        name,
+        email,
+        password,
+      });
+      console.log(res?.data);
+      if (res && res.data.success) {
+        toast.success(res.data.message);
+        const { data } = await axios.post(
+          `${BASE_URL}/api/e-commerce/product/create-cart`,
+          {
+            id: res?.data?.user?._id,
+          }
+        );
+        const resData = await axios.post(
+          `${BASE_URL}/api/e-commerce/auth/create-wish`,
+          {
+            id: res?.data?.user?._id,
+          }
+        );
+        if (data?.success && resData?.data?.success) {
+          navigate("/signin-page");
+        }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
+
   return (
     <>
       <Layout title={"Sign-Up"}>
@@ -11,9 +56,9 @@ const SignupPage = () => {
             {/*====== Section Content ======*/}
             <div className="section__content">
               <div className="container">
-                <div className="breadcrumb">
-                  <div className="breadcrumb__wrap">
-                    <ul className="breadcrumb__list">
+                <div className="breadcrumb wrap-info">
+                  <div className="breadcrumb__wrap wrap-info">
+                    <ul className="breadcrumb__list wrap-info">
                       <li className="has-separator">
                         <Link to="/">Home</Link>
                       </li>
@@ -61,6 +106,8 @@ const SignupPage = () => {
                               className="input-text input-text--primary-style"
                               type="text"
                               id="reg-fname"
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
                               placeholder="First Name"
                             />
                           </div>
@@ -72,6 +119,8 @@ const SignupPage = () => {
                               className="input-text input-text--primary-style"
                               type="text"
                               id="reg-lname"
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
                               placeholder="Last Name"
                             />
                           </div>
@@ -82,8 +131,10 @@ const SignupPage = () => {
                             </label>
                             <input
                               className="input-text input-text--primary-style"
-                              type="text"
+                              type="email"
                               id="reg-email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
                               placeholder="Enter E-mail"
                             />
                           </div>
@@ -93,8 +144,10 @@ const SignupPage = () => {
                             </label>
                             <input
                               className="input-text input-text--primary-style"
-                              type="text"
+                              type="password"
                               id="reg-password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
                               placeholder="Enter Password"
                             />
                           </div>
@@ -102,13 +155,14 @@ const SignupPage = () => {
                             <button
                               className="btn btn--e-transparent-brand-b-2"
                               type="submit"
+                              onClick={handleCreate}
                             >
                               CREATE
                             </button>
                           </div>
-                          <a className="gl-link" href="#">
+                          <Link className="gl-link" to="/shop-page">
                             Return to Store
-                          </a>
+                          </Link>
                         </form>
                       </div>
                     </div>

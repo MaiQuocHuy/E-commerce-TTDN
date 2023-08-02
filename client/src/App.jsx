@@ -2,7 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import AdminBranch from "./pages/admin/AdminBranch";
 import AdminOrder from "./pages/admin/AdminOrder";
-import AdminDiscount from "./pages/admin/AdminDiscount";
+import AdminPayment from "./pages/admin/AdminPayment";
 import AdminUser from "./pages/admin/AdminUser";
 import AdminRevenue from "./pages/admin/AdminRevenue";
 import OrderDetail from "./pages/admin/OrderDetail";
@@ -19,8 +19,6 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/user/CheckoutPage";
 import Dashboard from "./pages/user/Dashboard";
 import DashboardProfilePage from "./pages/user/DashboardProfilePage";
-import DashboardAddressBookPage from "./pages/user/DashboardAddressBookPage";
-import DashboardTrackOrder from "./pages/user/DashboardTrackOrder";
 import DashboardMyOrder from "./pages/user/DashboardMyOrder";
 import WishlistPage from "./pages/user/WishlistPage";
 import SigninPage from "./pages/Auth/SigninPage";
@@ -29,6 +27,12 @@ import ForgotpasswordPage from "./pages/Auth/ForgotpasswordPage";
 import UpdateProduct from "./pages/admin/UpdateProduct";
 import AdminRoute from "./components/Routes/AdminRoute";
 import Private from "./components/Routes/Private";
+import CreatePayment from "./pages/admin/CreatePayment";
+import UpdatePayment from "./pages/admin/UpdatePayment";
+import ManageMyOrder from "./pages/user/ManageMyOrder";
+import DashboardMyPassword from "./pages/user/DashboardMyPassword";
+import EditProfile from "./pages/user/EditProfile";
+import UpdatePassword from "./pages/user/UpdatePassword";
 
 function App() {
   return (
@@ -52,16 +56,25 @@ function App() {
             element={<DashboardProfilePage />}
           />
           <Route
-            path="dashboardaddaressbook-page"
-            element={<DashboardAddressBookPage />}
+            path="dashboardmypassword-page"
+            element={<DashboardMyPassword />}
           />
-          <Route
-            path="dashboardtrackorder-page"
-            element={<DashboardTrackOrder />}
-          />
+
           <Route path="dashboardmyorder-page" element={<DashboardMyOrder />} />
           <Route path="checkout-page" element={<CheckoutPage />} />
           <Route path="wishlist-page" element={<WishlistPage />} />
+          <Route
+            path="managemyorder-page/:orderId"
+            element={<ManageMyOrder />}
+          />
+          <Route
+            path="editprofile-page"
+            element={<EditProfile />}
+          />
+          <Route
+            path="updatepassword-page"
+            element={<UpdatePassword/>}
+          />
         </Route>
         <Route path="/admin/login-page" element={<Login />} />
         <Route path="/admin" element={<AdminRoute />}>
@@ -69,13 +82,15 @@ function App() {
           <Route path="product-page" element={<AdminProduct />} />
           <Route path="branch-page" element={<AdminBranch />} />
           <Route path="order-page" element={<AdminOrder />} />
-          <Route path="discount-page" element={<AdminDiscount />} />
+          <Route path="payment-page" element={<AdminPayment />} />
           <Route path="user-page" element={<AdminUser />} />
           <Route path="revenue-page" element={<AdminRevenue />} />
-          <Route path="order-page/:id" element={<OrderDetail />} />
+          <Route path="orderdetail-page/:id" element={<OrderDetail />} />
           <Route path="createproduct-page" element={<CreateProduct />} />
           <Route path="createbranch-page" element={<CreateBranch />} />
+          <Route path="createpayment-page" element={<CreatePayment />} />
           <Route path="updatebranch-page/:id" element={<UpdateBranch />} />
+          <Route path="updatepayment-page/:id" element={<UpdatePayment />} />
           <Route path="updateproduct-page/:slug" element={<UpdateProduct />} />
         </Route>
       </Routes>

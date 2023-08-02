@@ -74,8 +74,11 @@ const AdminProduct = () => {
 
   const handlePageClick = async (e) => {
     try {
-      console.log(e);
-      setCurrentPage(e.selected + 1);
+      if (search) {
+        setCurrentPage(e.selected + 1);
+      } else {
+        setCurrentPage(e.selected + 1);
+      }
     } catch (error) {
       toast.error("Error");
     }
@@ -122,16 +125,20 @@ const AdminProduct = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/e-commerce/product/search/${search}`
-      );
-      console.log(data);
-      if (data.length !== 0) {
-        toast.success("Searched");
-        setProducts(data);
+      console.log(search);
+      if (search) {
+        const { data } = await axios.get(
+          `${BASE_URL}/api/e-commerce/product/search/${search}?page=${currentPage}&limit=${limit}`
+        );
+        console.log(data);
+        if (data?.result?.length !== 0) {
+          toast.success("Searched");
+          setPageCount(data?.pageCount);
+          setProducts(data?.result);
+          setStartIndex((currentPage - 1) * limit + 1);
+        }
       } else {
-        setOk(true);
-        setProducts([]);
+        getPaginatedProduct();
       }
     } catch (error) {
       toast.error("Error");
@@ -184,7 +191,10 @@ const AdminProduct = () => {
                         <button
                           type="submit"
                           className="btn btn-default"
-                          onClick={handleSearch}
+                          onClick={(e) => {
+                            setCurrentPage(1);
+                            handleSearch(e);
+                          }}
                         >
                           <i className="fas fa-search" />
                         </button>
@@ -290,7 +300,7 @@ const AdminProduct = () => {
                     </tbody>
                   </table>
                 </div>
-                <dv
+                <div
                   className="card-footer clearfix"
                   style={{ backgroundColor: "white" }}
                 >
@@ -314,7 +324,7 @@ const AdminProduct = () => {
                       activeClassName="active"
                     />
                   )}
-                </dv>
+                </div>
               </div>
             </div>
           </section>

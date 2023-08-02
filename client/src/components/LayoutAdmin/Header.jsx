@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/auth";
+import axios from "axios";
+import BASE_URL from "../../config";
 
 const Header = () => {
   const [auth, setAuth] = useAuth();
   const [activeTabAdmin, setActiveTabAdmin] = useState(false);
+  const [user, setUser] = useState({});
 
   const handleLogout = () => {
     setAuth({
@@ -20,6 +23,24 @@ const Header = () => {
     setActiveTabAdmin(!activeTabAdmin);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/e-commerce/auth/info-user`,
+        {
+          id: auth?.user?._id,
+        }
+      );
+      console.log(data);
+      if (data?.success) {
+        setUser(data?.user);
+      }
+    };
+    if (auth?.token) {
+      fetchData();
+    }
+  }, [auth?.token]);
+
   return (
     <>
       <nav className="main-header navbar navbar-expand navbar-white navbar-light">
@@ -28,7 +49,7 @@ const Header = () => {
           <li className="nav-item">
             <div className="nav-link p-0 pr-3" onClick={handleDropdown}>
               <img
-                src="img/avatar5.png"
+                src="https://cdn.dribbble.com/userupload/4727563/file/original-c10286f525387d0468677c1fd18a1f30.png?resize=1600x1200"
                 className="img-circle elevation-2"
                 width={40}
                 height={40}
@@ -40,9 +61,9 @@ const Header = () => {
               style={{ display: activeTabAdmin ? "block" : "none" }}
             >
               <h4 className="h4 mb-0">
-                <strong>Mohit Singh</strong>
+                <strong>{user?.name}</strong>
               </h4>
-              <div className="mb-3">example@example.com</div>
+              <div className="mb-3">{user?.email}</div>
               <div className="dropdown-divider" />
               <a href="#" className="dropdown-item">
                 <i className="fas fa-user-cog mr-2" /> Settings

@@ -1,8 +1,37 @@
-import React from "react";
 import UserMenu from "../../components/Layout/UserMenu";
 import Layout from "../../components/Layout/Layout";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../context/auth";
+import axios from "axios";
+import BASE_URL from "../../config";
+import { Link } from "react-router-dom";
 
 const DashboardProfilePage = () => {
+  const [auth, setAuth] = useAuth();
+  const [user, setUser] = useState({});
+
+  const getInfo = async () => {
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/e-commerce/auth/info-user`,
+        {
+          id: auth?.user?._id,
+        }
+      );
+      if (data?.success) {
+        setUser(data?.user);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (auth?.token) {
+      getInfo();
+    }
+  }, [auth?.token]);
+
   return (
     <>
       <Layout title={"Dash Board Profile"}>
@@ -17,53 +46,42 @@ const DashboardProfilePage = () => {
                 <div className="row">
                   <div className="col-lg-4 u-s-m-b-30">
                     <h2 className="dash__h2 u-s-m-b-8">Full Name</h2>
-                    <span className="dash__text">John Doe</span>
+                    <span className="dash__text">{user?.name}</span>
                   </div>
                   <div className="col-lg-4 u-s-m-b-30">
                     <h2 className="dash__h2 u-s-m-b-8">E-mail</h2>
-                    <span className="dash__text">johndoe@domain.com</span>
-                    <div className="dash__link dash__link--secondary">
-                      <a href="#">Change</a>
-                    </div>
+                    <span className="dash__text">{user?.email}</span>
                   </div>
                   <div className="col-lg-4 u-s-m-b-30">
                     <h2 className="dash__h2 u-s-m-b-8">Phone</h2>
-                    <span className="dash__text">Please enter your mobile</span>
-                    <div className="dash__link dash__link--secondary">
-                      <a href="#">Add</a>
-                    </div>
+                    <span className="dash__text">
+                      {user?.phone || "Please enter your mobile phone"}
+                    </span>
                   </div>
                   <div className="col-lg-4 u-s-m-b-30">
-                    <h2 className="dash__h2 u-s-m-b-8">Birthday</h2>
-                    <span className="dash__text">1991-02-02</span>
-                  </div>
-                  <div className="col-lg-4 u-s-m-b-30">
-                    <h2 className="dash__h2 u-s-m-b-8">Gender</h2>
-                    <span className="dash__text">Male</span>
+                    <h2 className="dash__h2 u-s-m-b-8">Address</h2>
+                    <span className="dash__text">
+                      {user?.address || "Please enter your address"}
+                    </span>
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-lg-12">
-                    <div className="dash__link dash__link--secondary u-s-m-b-30">
-                      <a data-modal="modal" data-modal-id="#dash-newsletter">
-                        Subscribe Newsletter
-                      </a>
-                    </div>
                     <div className="u-s-m-b-16">
-                      <a
+                      <Link
                         className="dash__custom-link btn--e-transparent-brand-b-2"
-                        href="dash-edit-profile.html"
+                        to="/user/editprofile-page"
                       >
                         Edit Profile
-                      </a>
+                      </Link>
                     </div>
                     <div>
-                      <a
+                      <Link
                         className="dash__custom-link btn--e-brand-b-2"
-                        href="#"
+                        to="/user/updatepassword-page"
                       >
                         Change Password
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </div>

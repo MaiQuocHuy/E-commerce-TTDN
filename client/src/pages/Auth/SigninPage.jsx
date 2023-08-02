@@ -1,8 +1,46 @@
-import React from "react";
+import { useState } from "react";
 import Layout from "../../components/Layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/auth";
+import { toast } from "react-hot-toast";
+import axios from "axios";
+import BASE_URL from "../../config";
 
 const SigninPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [auth, setAuth] = useAuth();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/e-commerce/auth/login`,
+        {
+          email,
+          password,
+        }
+      );
+      if (data?.success) {
+        setAuth({
+          ...auth,
+          user: data?.user,
+          token: data?.token,
+        });
+        localStorage.setItem("auth", JSON.stringify(data));
+        navigate(location.state || "/");
+      } else {
+        toast.error(data?.error);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error);
+    }
+  };
+
   return (
     <>
       <Layout title={"Sign-In"}>
@@ -11,9 +49,9 @@ const SigninPage = () => {
             {/*====== Section Content ======*/}
             <div className="section__content">
               <div className="container">
-                <div className="breadcrumb">
-                  <div className="breadcrumb__wrap">
-                    <ul className="breadcrumb__list">
+                <div className="breadcrumb wrap-info">
+                  <div className="breadcrumb__wrap wrap-info">
+                    <ul className="breadcrumb__list wrap-info">
                       <li className="has-separator">
                         <Link to="/">Home</Link>
                       </li>
@@ -59,12 +97,12 @@ const SigninPage = () => {
                           in your account and more.
                         </span>
                         <div className="u-s-m-b-15">
-                          <a
+                          <Link
                             className="l-f-o__create-link btn--e-transparent-brand-b-2"
-                            href="signup.html"
+                            to="/signup-page"
                           >
                             CREATE AN ACCOUNT
-                          </a>
+                          </Link>
                         </div>
                         <h1 className="gl-h1">SIGNIN</h1>
                         <span className="gl-text u-s-m-b-30">
@@ -77,8 +115,10 @@ const SigninPage = () => {
                             </label>
                             <input
                               className="input-text input-text--primary-style"
-                              type="text"
+                              type="email"
                               id="login-email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
                               placeholder="Enter E-mail"
                             />
                           </div>
@@ -91,8 +131,10 @@ const SigninPage = () => {
                             </label>
                             <input
                               className="input-text input-text--primary-style"
-                              type="text"
+                              type="password"
                               id="login-password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
                               placeholder="Enter Password"
                             />
                           </div>
@@ -101,14 +143,18 @@ const SigninPage = () => {
                               <button
                                 className="btn btn--e-transparent-brand-b-2"
                                 type="submit"
+                                onClick={handleLogin}
                               >
                                 LOGIN
                               </button>
                             </div>
                             <div className="u-s-m-b-30">
-                              <a className="gl-link" href="lost-password.html">
+                              <Link
+                                className="gl-link"
+                                to="/forgotpassword-page"
+                              >
                                 Lost Your Password?
-                              </a>
+                              </Link>
                             </div>
                           </div>
                         </form>

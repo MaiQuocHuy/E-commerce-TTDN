@@ -5,18 +5,41 @@ import axios from "axios";
 import BASE_URL from "../../config";
 import { toast } from "react-hot-toast";
 import ReactPaginate from "react-paginate";
+import { Button } from "antd";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const AdminBranch = () => {
-  const [branches, setBranches] = useState([]);
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState(new Map());
+  const [ok, setOk] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 6;
   const [startIndex, setStartIndex] = useState(1);
   const [pageCount, setPageCount] = useState(1);
 
+  const antIcon = (
+    <LoadingOutlined
+      style={{
+        fontSize: 24,
+      }}
+      spin
+    />
+  );
   useEffect(() => {
     const fetchBranch = async () => {
-      await getPaginatedBranch();
+      await toast.promise(getPaginatedBranch(), {
+        loading: "Loading...",
+        success: "Loading product successfully!",
+        error: "Failed to loading product",
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "yellow",
+          color: "black",
+        },
+      });
       setStartIndex((currentPage - 1) * limit + 1);
     };
     fetchBranch();
@@ -42,12 +65,28 @@ const AdminBranch = () => {
     e.preventDefault();
     console.log(search);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/e-commerce/branch/search/${search}`
-      );
-      if (data) {
-        toast.success("Searched");
-        setBranches(data);
+      if (search !== "") {
+        const resultMap = new Map();
+        Array.from(products.entries()).map(([key, value]) => {
+          if (key.name.includes(search) || key.slug.includes(search)) {
+            resultMap.set(key, value);
+          }
+        });
+        console.log(resultMap, "Result");
+        setProducts(resultMap);
+      } else {
+        // getPaginatedBranch();
+        toast.promise(getPaginatedBranch(), {
+          loading: "Loading...",
+          success: "Loading product successfully!",
+          error: "Failed to loading product",
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "yellow",
+            color: "black",
+          },
+        });
       }
     } catch (error) {
       toast.error("Error");
@@ -60,8 +99,23 @@ const AdminBranch = () => {
       const { data } = await axios.get(
         `${BASE_URL}/api/e-commerce/branch/paginatedbranch?page=${currentPage}&limit=${limit}`
       );
+      // console.log(data?.results?.result, "Branch");
+      const productsNew = data?.results?.result;
+      if (productsNew.length !== 0) {
+        let results;
+        let newData = new Map();
+        for (const item of productsNew) {
+          results = await axios.get(
+            `${BASE_URL}/api/e-commerce/product/get-product-by-branch/${item._id}`
+          );
+          newData.set(item, results?.data?.products);
+        }
+        Array.from(newData.entries()).map(([key, value]) => {
+          console.log(`${key.name} = ${value.length}`);
+        });
+        setProducts(newData);
+      }
       setPageCount(data?.results?.pageCount);
-      setBranches(data?.results?.result);
     } catch (error) {
       toast.error("Error");
       console.log(error);
@@ -142,48 +196,82 @@ const AdminBranch = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {branches?.map((item, index) => (
-                        <tr key={item._id}>
-                          {console.log(startIndex + index)}
-                          <td>{startIndex + index}</td>
-                          <td>{item.name}</td>
-                          <td>{item.slug}</td>
-                          <td>
-                            <Link to={`/admin/updatebranch-page/${item._id}`}>
-                              <svg
-                                className="filament-link-icon w-4 h-4 mr-1 width-items"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                aria-hidden="true"
+                      {products.size === 0 ? (
+                        <tr>
+                          <td colSpan={4}>
+                            {ok === false ? (
+                              <Spin
+                                indicator={antIcon}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                }}
+                              />
+                            ) : (
+                              <h4
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                }}
                               >
-                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                              </svg>
-                            </Link>
-                            <Link
-                              to="#"
-                              className="text-danger w-4 h-4 mr-1"
-                              // value={item.slug}
-                              onClick={(e) => handleDelete(item._id, e)}
-                            >
-                              <svg
-                                className="filament-link-icon w-4 h-4 mr-1 width-items"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </Link>
+                                Nothing
+                              </h4>
+                            )}
                           </td>
                         </tr>
-                      ))}
-                      {/* ; */}
+                      ) : (
+                        Array.from(products.entries()).map(
+                          ([item, value], index) => (
+                            <tr key={item._id}>
+                              <td>{startIndex + index}</td>
+                              <td>{item.name}</td>
+                              <td>{item.slug}</td>
+                              <td>
+                                <Link
+                                  to={`/admin/updatebranch-page/${item._id}`}
+                                >
+                                  <svg
+                                    className="filament-link-icon w-4 h-4 mr-1 width-items"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                  >
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                  </svg>
+                                </Link>
+                                <Button
+                                  className="text-danger w-4 h-4 mr-1"
+                                  // value={item.slug}
+                                  // disabled={}
+                                  style={{
+                                    background: "transparent",
+                                    borderColor: "transparent",
+                                  }}
+                                  disabled={value.length !== 0 ? true : false}
+                                  onClick={(e) => handleDelete(item._id, e)}
+                                >
+                                  <svg
+                                    className="filament-link-icon w-4 h-4 mr-1 width-items"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </Button>
+                              </td>
+                            </tr>
+                          )
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -191,24 +279,26 @@ const AdminBranch = () => {
                   className="card-footer clearfix"
                   style={{ backgroundColor: "white" }}
                 >
-                  <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={handlePageClick}
-                    pageRangeDisplayed={5}
-                    pageCount={pageCount}
-                    previousLabel="< previous"
-                    renderOnZeroPageCount={null}
-                    marginPagesDisplayed={2}
-                    containerClassName="pagination justify-content-end mb-0"
-                    pageClassName="page-item"
-                    pageLinkClassName="page-link"
-                    previousClassName="page-item"
-                    previousLinkClassName="page-link"
-                    nextClassName="page-item"
-                    nextLinkClassName="page-link"
-                    activeClassName="active"
-                  />
+                  {products.size !== 0 && (
+                    <ReactPaginate
+                      breakLabel="..."
+                      nextLabel="next >"
+                      onPageChange={handlePageClick}
+                      pageRangeDisplayed={5}
+                      pageCount={pageCount}
+                      previousLabel="< previous"
+                      renderOnZeroPageCount={null}
+                      marginPagesDisplayed={2}
+                      containerClassName="pagination justify-content-end mb-0"
+                      pageClassName="page-item"
+                      pageLinkClassName="page-link"
+                      previousClassName="page-item"
+                      previousLinkClassName="page-link"
+                      nextClassName="page-item"
+                      nextLinkClassName="page-link"
+                      activeClassName="active"
+                    />
+                  )}
                 </div>
               </div>
             </div>

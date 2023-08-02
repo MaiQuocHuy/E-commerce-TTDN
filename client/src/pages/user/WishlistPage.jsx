@@ -1,8 +1,62 @@
-import React from "react";
 import Layout from "../../components/Layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useWish } from "../../context/wish";
+import BASE_URL from "../../config";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import { useAuth } from "../../context/auth";
+import { useCart } from "../../context/cart";
+import { useState } from "react";
 
 const WishlistPage = () => {
+  const [wishes, setWishes] = useWish();
+  const [auth, setAuth] = useAuth();
+  const navigate = useNavigate();
+  const [counter, setCounter] = useState(1);
+  const [productInCart, setProductInCart] = useCart();
+
+  console.log(wishes, "Wish");
+  const handleWishProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const idProduct = e.target.getAttribute("data-value");
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/auth/wishproduct/${idProduct}`
+      );
+      if (data?.success) {
+        toast.success(data?.message);
+        console.log(data?.handleWish?.products, "Wish");
+        setWishes(data?.handleWish?.products);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    const idProduct = e.target.getAttribute("data-value");
+    try {
+      if (auth?.user != null) {
+        const { data } = await axios.post(
+          `${BASE_URL}/api/e-commerce/product/add-to-cart`,
+          {
+            idProduct: idProduct,
+            id: auth?.user?._id,
+            quantity: counter,
+          }
+        );
+        if (data?.success) {
+          toast.success("Added successfully");
+          console.log(data?.cart);
+          setProductInCart(data?.cart?.products);
+        } else toast.error(data?.error);
+      } else navigate("/signin-page");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <Layout title={"Wish-List"}>
@@ -50,159 +104,65 @@ const WishlistPage = () => {
                 <div className="row">
                   <div className="col-lg-12 col-md-12 col-sm-12">
                     {/*====== Wishlist Product ======*/}
-                    <div className="w-r u-s-m-b-30">
-                      <div className="w-r__container">
-                        <div className="w-r__wrap-1">
-                          <div className="w-r__img-wrap">
-                            <img
-                              className="u-img-fluid"
-                              src="images/product/electronic/product3.jpg"
-                              alt
-                            />
-                          </div>
-                          <div className="w-r__info">
-                            <span className="w-r__name">
-                              <a href="product-detail.html">
-                                Yellow Wireless Headphone
-                              </a>
-                            </span>
-                            <span className="w-r__category">
-                              <a href="shop-side-version-2.html">Electronics</a>
-                            </span>
-                            <span className="w-r__price">
-                              $125.00
-                              <span className="w-r__discount">$160.00</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-r__wrap-2">
-                          <a
-                            className="w-r__link btn--e-brand-b-2"
-                            data-modal="modal"
-                            data-modal-id="#add-to-cart"
-                          >
-                            ADD TO CART
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="product-detail.html"
-                          >
-                            VIEW
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="#"
-                          >
-                            REMOVE
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    {/*====== End - Wishlist Product ======*/}
-                    {/*====== Wishlist Product ======*/}
-                    <div className="w-r u-s-m-b-30">
-                      <div className="w-r__container">
-                        <div className="w-r__wrap-1">
-                          <div className="w-r__img-wrap">
-                            <img
-                              className="u-img-fluid"
-                              src="images/product/women/product8.jpg"
-                              alt
-                            />
-                          </div>
-                          <div className="w-r__info">
-                            <span className="w-r__name">
-                              <a href="product-detail.html">
-                                New Dress D Nice Elegant
-                              </a>
-                            </span>
-                            <span className="w-r__category">
-                              <a href="shop-side-version-2.html">
-                                Women Clothing
-                              </a>
-                            </span>
-                            <span className="w-r__price">
-                              $125.00
-                              <span className="w-r__discount">$160.00</span>
-                            </span>
+                    {wishes?.length != 0 &&
+                      wishes?.map((item, index) => (
+                        <div className="w-r u-s-m-b-30" key={index}>
+                          <div className="w-r__container">
+                            <div className="w-r__wrap-1">
+                              <div className="w-r__img-wrap">
+                                <img
+                                  className="u-img-fluid"
+                                  src={`${BASE_URL}/api/e-commerce/product/product-photo/${item.product._id}`}
+                                  alt
+                                />
+                              </div>
+                              <div className="w-r__info">
+                                <span className="w-r__name">
+                                  <Link
+                                    to={`/product-detail-page/${item.product.slug}`}
+                                  >
+                                    {item.product.name}
+                                  </Link>
+                                </span>
+                                <span className="w-r__category">
+                                  <Link to="#">{item.product.branch.name}</Link>
+                                </span>
+                                <span className="w-r__price">
+                                  $ {parseInt(item.product.price).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                            <div
+                              className="w-r__wrap-2"
+                              style={{ flexShrink: 0 }}
+                            >
+                              <Link
+                                className="w-r__link btn--e-brand-b-2"
+                                data-modal="modal"
+                                data-modal-id="#add-to-cart"
+                                data-value={item._id}
+                                onClick={(e) => handleAddToCart(e)}
+                              >
+                                ADD TO CART
+                              </Link>
+                              <Link     
+                                className="w-r__link btn--e-transparent-platinum-b-2"
+                                to={`/product-detail-page/${item.product.slug}`}
+                              >
+                                VIEW
+                              </Link>
+                              <Link
+                                className="w-r__link btn--e-transparent-platinum-b-2"
+                                to="#"
+                                data-value={item.product._id}
+                                onClick={(e) => handleWishProduct(e)}
+                              >
+                                REMOVE
+                              </Link>
+                            </div>
                           </div>
                         </div>
-                        <div className="w-r__wrap-2">
-                          <a
-                            className="w-r__link btn--e-brand-b-2"
-                            data-modal="modal"
-                            data-modal-id="#add-to-cart"
-                          >
-                            ADD TO CART
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="product-detail.html"
-                          >
-                            VIEW
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="#"
-                          >
-                            REMOVE
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    {/*====== End - Wishlist Product ======*/}
-                    {/*====== Wishlist Product ======*/}
-                    <div className="w-r u-s-m-b-30">
-                      <div className="w-r__container">
-                        <div className="w-r__wrap-1">
-                          <div className="w-r__img-wrap">
-                            <img
-                              className="u-img-fluid"
-                              src="images/product/men/product8.jpg"
-                              alt
-                            />
-                          </div>
-                          <div className="w-r__info">
-                            <span className="w-r__name">
-                              <a href="product-detail.html">
-                                New Fashion D Nice Elegant
-                              </a>
-                            </span>
-                            <span className="w-r__category">
-                              <a href="shop-side-version-2.html">
-                                Men Clothing
-                              </a>
-                            </span>
-                            <span className="w-r__price">
-                              $125.00
-                              <span className="w-r__discount">$160.00</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-r__wrap-2">
-                          <a
-                            className="w-r__link btn--e-brand-b-2"
-                            data-modal="modal"
-                            data-modal-id="#add-to-cart"
-                          >
-                            ADD TO CART
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="product-detail.html"
-                          >
-                            VIEW
-                          </a>
-                          <a
-                            className="w-r__link btn--e-transparent-platinum-b-2"
-                            href="#"
-                          >
-                            REMOVE
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    {/*====== End - Wishlist Product ======*/}
+                      ))}
                   </div>
                   <div className="col-lg-12">
                     <div className="route-box">

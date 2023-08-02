@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useOrder } from "../../context/order";
+import { useWish } from "../../context/wish";
 
 const UserMenu = ({ children }) => {
   const [activeTab, setActiveTab] = useState("");
-
+  const [wishes, setWishes] = useWish();
+  const [orders, setOrders] = useOrder();
   const handleTabClick = (tabName) => {
     console.log(tabName);
     setActiveTab(tabName);
@@ -63,32 +66,23 @@ const UserMenu = ({ children }) => {
                               My Profile
                             </NavLink>
                           </li>
-                          <li>
-                            <NavLink
-                              to="/user/dashboardaddaressbook-page"
-                              onClick={() =>
-                                handleTabClick("dashboardaddaressbook")
-                              }
-                            >
-                              Address Book
-                            </NavLink>
-                          </li>
-                          <li>
-                            <NavLink
-                              to="/user/dashboardtrackorder-page"
-                              onClick={() =>
-                                handleTabClick("dashboardtrackorder")
-                              }
-                            >
-                              Track Order
-                            </NavLink>
-                          </li>
+
                           <li>
                             <NavLink
                               to="/user/dashboardmyorder-page"
                               onClick={() => handleTabClick("dashboardmyorder")}
                             >
                               My Orders
+                            </NavLink>
+                          </li>
+                          <li>
+                            <NavLink
+                              to="/user/dashboardmypassword-page"
+                              onClick={() =>
+                                handleTabClick("dashboardmypassword")
+                              }
+                            >
+                              My Password
                             </NavLink>
                           </li>
                         </ul>
@@ -102,29 +96,23 @@ const UserMenu = ({ children }) => {
                               <span className="dash__w-icon dash__w-icon-style-1">
                                 <i className="fas fa-cart-arrow-down" />
                               </span>
-                              <span className="dash__w-text">4</span>
+                              <span className="dash__w-text">
+                                {orders.length || 0}
+                              </span>
                               <span className="dash__w-name">
                                 Orders Placed
                               </span>
                             </div>
                           </li>
-                          <li>
-                            <div className="dash__w-wrap">
-                              <span className="dash__w-icon dash__w-icon-style-2">
-                                <i className="fas fa-times" />
-                              </span>
-                              <span className="dash__w-text">0</span>
-                              <span className="dash__w-name">
-                                Cancel Orders
-                              </span>
-                            </div>
-                          </li>
+
                           <li>
                             <div className="dash__w-wrap">
                               <span className="dash__w-icon dash__w-icon-style-3">
                                 <i className="far fa-heart" />
                               </span>
-                              <span className="dash__w-text">0</span>
+                              <span className="dash__w-text">
+                                {wishes?.length}
+                              </span>
                               <span className="dash__w-name">Wishlist</span>
                             </div>
                           </li>

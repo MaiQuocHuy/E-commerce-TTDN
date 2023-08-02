@@ -17,7 +17,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
 //router
 app.use("/api/e-commerce/auth", authRoutes);
 app.use("/api/e-commerce/branch", branchRoutes);
