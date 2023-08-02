@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
+import { toast } from "react-hot-toast";
+import { useWish } from "../context/wish";
 
 const HomePage = () => {
   const [branches, setBranches] = useState([]);
@@ -14,6 +16,7 @@ const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [arriveproducts, setArriveproducts] = useState([]);
   const [ok, setOk] = useState(false);
+  const [wishes, setWishes] = useWish();
 
   const antIcon = (
     <LoadingOutlined
@@ -23,7 +26,6 @@ const HomePage = () => {
       spin
     />
   );
-
 
   const getAllBranch = async () => {
     try {
@@ -83,7 +85,6 @@ const HomePage = () => {
     getProductByBranch(e, id);
   };
 
-
   const getAllProducts = async () => {
     try {
       const { data } = await axios.get(
@@ -94,6 +95,24 @@ const HomePage = () => {
       } else {
         setOk(true);
         setProducts([]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleWishProduct = async (e) => {
+    e.preventDefault();
+    try {
+      console.log(e.target.getAttribute("data-value"));
+      const idProduct = e.target.getAttribute("data-value");
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/auth/wishproduct/${idProduct}`
+      );
+      if (data?.success) {
+        toast.success(data?.message);
+        console.log(data?.handleWish?.products, "Wish");
+        setWishes(data?.handleWish?.products);
       }
     } catch (error) {
       console.log(error);
@@ -431,36 +450,16 @@ const HomePage = () => {
                               <div className="product-o__action-wrap">
                                 <ul className="product-o__action-list">
                                   <li>
-                                    <a
-                                      data-modal="modal"
-                                      data-modal-id="#quick-look"
+                                    <Link
+                                      to="#"
                                       data-tooltip="tooltip"
                                       data-placement="top"
-                                      title="Quick View"
-                                    >
-                                      <i className="fas fa-search-plus" />
-                                    </a>
-                                  </li>
-                                  <li>
-                                    <a
-                                      data-modal="modal"
-                                      data-modal-id="#add-to-cart"
-                                      data-tooltip="tooltip"
-                                      data-placement="top"
-                                      title="Add to Cart"
-                                    >
-                                      <i className="fas fa-plus-circle" />
-                                    </a>
-                                  </li>
-                                  <li>
-                                    <a
-                                      href="signin.html"
-                                      data-tooltip="tooltip"
-                                      data-placement="top"
+                                      data-value={item._id}
                                       title="Add to Wishlist"
+                                      onClick={handleWishProduct}
                                     >
                                       <i className="fas fa-heart" />
-                                    </a>
+                                    </Link>
                                   </li>
                                 </ul>
                               </div>

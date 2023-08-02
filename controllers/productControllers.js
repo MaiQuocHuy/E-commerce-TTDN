@@ -16,7 +16,7 @@ paypal.configure({
     "EJLp1fMiB7ghYYAiJ9Xq8dAZAWCxj9UpN5ICW2BVV_MbpaGe96xBrPw29NSultS_Zl55qNLea9VDLitw",
 });
 
-export const ProductController = async (req, res) => {
+export const getAllProductController = async (req, res) => {
   try {
     const products = await productModel
       .find({})
