@@ -33,6 +33,7 @@ import ManageMyOrder from "./pages/user/ManageMyOrder";
 import DashboardMyPassword from "./pages/user/DashboardMyPassword";
 import EditProfile from "./pages/user/EditProfile";
 import UpdatePassword from "./pages/user/UpdatePassword";
+import SearchPage from "./pages/user/SearchPage";
 
 function App() {
   return (
@@ -48,7 +49,7 @@ function App() {
         <Route path="/signin-page" element={<SigninPage />} />
         <Route path="/signup-page" element={<SignupPage />} />
         <Route path="/forgotpassword-page" element={<ForgotpasswordPage />} />
-
+        <Route path="/product/search" element={<SearchPage />} />
         <Route path="/user" element={<Private />}>
           <Route path="dashboard-page" element={<Dashboard />} />
           <Route
@@ -67,14 +68,8 @@ function App() {
             path="managemyorder-page/:orderId"
             element={<ManageMyOrder />}
           />
-          <Route
-            path="editprofile-page"
-            element={<EditProfile />}
-          />
-          <Route
-            path="updatepassword-page"
-            element={<UpdatePassword/>}
-          />
+          <Route path="editprofile-page" element={<EditProfile />} />
+          <Route path="updatepassword-page" element={<UpdatePassword />} />
         </Route>
         <Route path="/admin/login-page" element={<Login />} />
         <Route path="/admin" element={<AdminRoute />}>

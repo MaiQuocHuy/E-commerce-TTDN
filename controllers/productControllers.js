@@ -313,7 +313,6 @@ export const searchProductController = async (req, res) => {
         ],
       })
       .select("-photo");
-    console.log(results);
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const startIndex = (page - 1) * limit;

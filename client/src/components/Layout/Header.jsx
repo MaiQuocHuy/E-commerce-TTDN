@@ -4,6 +4,7 @@ import logo from "../../assets/react.svg";
 import { useAuth } from "../../context/auth";
 import BASE_URL from "../../config";
 import { useCart } from "../../context/cart";
+import Searchinput from "../Searchinput";
 
 const Header = () => {
   const [auth, setAuth] = useAuth();
@@ -55,19 +56,7 @@ const Header = () => {
             <Link className="main-logo" to="/">
               <img src={logo} alt />
             </Link>
-            <form className="main-form">
-              <label htmlFor="main-search" />
-              <input
-                className="input-text input-text--border-radius input-text--style-1"
-                type="text"
-                id="main-search"
-                placeholder="Search"
-              />
-              <button
-                className="btn btn--icon fas fa-search main-search-button"
-                type="submit"
-              />
-            </form>
+            <Searchinput />
             <div className="menu-init" id="navigation">
               <button
                 className="btn btn--icon toggle-button toggle-button--secondary fas fa-cogs"
