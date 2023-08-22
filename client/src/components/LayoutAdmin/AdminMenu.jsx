@@ -61,12 +61,6 @@ const AdminMenu = () => {
                   <p>Payment</p>
                 </NavLink>
               </li>
-              <li className="nav-item">
-                <NavLink to="/admin/user-page" className="nav-link">
-                  <i className="nav-icon  fas fa-users" />
-                  <p>Users</p>
-                </NavLink>
-              </li>
             </ul>
           </nav>
           {/* /.sidebar-menu */}

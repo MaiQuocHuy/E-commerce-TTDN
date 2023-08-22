@@ -64,14 +64,7 @@ const Header = () => {
                 <strong>{user?.name}</strong>
               </h4>
               <div className="mb-3">{user?.email}</div>
-              <div className="dropdown-divider" />
-              <a href="#" className="dropdown-item">
-                <i className="fas fa-user-cog mr-2" /> Settings
-              </a>
-              <div className="dropdown-divider" />
-              <a href="#" className="dropdown-item">
-                <i className="fas fa-lock mr-2" /> Change Password
-              </a>
+
               <div className="dropdown-divider" />
               <Link
                 onClick={handleLogout}

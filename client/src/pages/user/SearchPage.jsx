@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import Layout from "../../components/Layout/Layout";
 import { useSearch } from "../../context/search";
 import { LoadingOutlined } from "@ant-design/icons";

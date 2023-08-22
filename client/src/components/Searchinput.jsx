@@ -3,24 +3,43 @@ import { useSearch } from "../context/search";
 import BASE_URL from "../config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const Searchinput = () => {
   const [values, setValues] = useSearch();
   const [currentPage, setCurrentPage] = useState(1);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log(values.keyword);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/e-commerce/product/search/${
-          values.keyword
-        }?page=${currentPage}&limit=${20}`
-      );
-      setValues({ ...values, result: data.result });
-      navigate("/product/search")
+      if (values.keyword != "") {
+        const { data } = await axios.get(
+          `${BASE_URL}/api/e-commerce/product/search/${
+            values.keyword
+          }?page=${currentPage}&limit=${20}`
+        );
+        setValues({ ...values, result: data.result });
+        navigate("/product/search");
+      } else {
+        await getPaginatedProduct();
+      }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const getPaginatedProduct = async () => {
+    try {
+      const { data } = await axios.get(
+        `${BASE_URL}/api/e-commerce/product/paginatedproduct?page=${currentPage}&limit=${8}`
+      );
+      console.log(data);
+      if (data?.results?.result?.length !== 0) {
+        setValues({ ...values, result: data.results.result });
+        navigate("/product/search");
+      }
+    } catch (error) {
+      toast.error(error);
     }
   };
 

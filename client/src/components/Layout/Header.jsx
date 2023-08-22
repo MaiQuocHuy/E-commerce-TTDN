@@ -54,7 +54,12 @@ const Header = () => {
         >
           <div className="primary-nav">
             <Link className="main-logo" to="/">
-              <img src={logo} alt />
+              <img
+                src="https://static.vecteezy.com/system/resources/previews/014/928/436/original/check-mark-shopping-bag-logo-shopping-bag-icon-for-online-shop-business-logo-free-vector.jpg"
+                alt
+                width={40}
+                height={40}
+              />
             </Link>
             <Searchinput />
             <div className="menu-init" id="navigation">
